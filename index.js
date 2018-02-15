@@ -18,9 +18,9 @@ function main() {
           coffeeChannels.forEach(channel => {
             //for each channel, find its members
             slackClient.channels.info(channel.id)
-              .then(res =>
+              .then(res => {
                 //generate pairs for each channel
-                api.generatePairs(res.channel.members, previousPairs).generatedPairs
+                return api.generatePairs(res.channel.members, previousPairs).generatedPairs
                 .forEach(({
                   personOne,
                   personTwo
@@ -29,10 +29,11 @@ function main() {
                   db.createNewPairing(personOne, personTwo)
                   //send message via Slack
                   sendSlackMessage([personOne, personTwo], channel.name)
-                }))
+                })
+              })
+            })
           })
         })
-    })
     .catch(err => console.error(err))
 }
 
