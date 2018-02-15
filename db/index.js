@@ -12,10 +12,12 @@ function fetchAllPairings() {
                        WHERE created_at > now() - interval '8 weeks'`)
 }
 
-function createNewPairing(name1,name2,name3) {
+function createNewPairing(name1, name2, name3) {
   return client.query(`INSERT INTO pairings(person_one, person_two, person_three) 
-                        VALUES($1, $2, $3) RETURNING pairings.id`, 
-                        [name1, name2, name3 || null])
+                        VALUES($1, $2, $3) RETURNING pairings.id`, [name1, name2, name3 || null])
 }
 
-module.exports = {fetchAllPairings, createNewPairing}
+module.exports = {
+  fetchAllPairings,
+  createNewPairing
+}
