@@ -1,72 +1,77 @@
 const _ = require('lodash')
-const db = require('../db')
 
-function generatePreviousPairsSet(previousPairs) {
-  const pairsSet = new Set([])
-  previousPairs.forEach(pair => {
-    pairsSet.add(`${pair['person_one']},${pair['person_two']}`)
-    if (pair['person_three']) {
-      pairsSet.add(`${pair['person_one']},${pair['person_three']}`)
-      pairsSet.add(`${pair['person_two']},${pair['person_three']}`)
+const ordered = (a, b) => (a < b ? [a, b] : [b, a])
+
+function addPair(pairs, a, b) {
+  const [first, second] = ordered(a, b)
+  if (!pairs[first])
+    pairs[first] = {}
+  pairs[first][second] = true
+}
+
+function hasPair(pairs, a, b) {
+  const [first, second] = ordered(a, b)
+  return pairs[a] && pairs[a][b]
+}
+
+function transformPreviousPairs(previousPairs) {
+  const pairDict = {}
+  previousPairs.forEach(({ person_one, person_two, person_three }) => {
+    addPair(pairDict, person_one, person_two)
+    if (person_three) {
+      addPair(pairDict, person_one, person_three)
+      addPair(pairDict, person_two, person_three)
     }
   })
-  return pairsSet
+  return pairDict
 }
 
 function generatePairs(people, previousPairs) {
-  //generate our pairs set
-  const pairsSet = generatePreviousPairsSet(previousPairs)
+  const pool = _.map(people, name => ({ name, isAssigned: false }))
+  const currentPairs = []
+  const unmatched = []
+  let best = { pairs: [], unmatched: people }
 
-  //shuffle the array
-  let shuffledPeople = _.shuffle(people)
+  function genPairsRec(start) {
+    if (unmatched.length >= best.unmatched.length) {
+      // Will not be able to beat current best, so skip this subtree
+      return
+    }
 
-  //create variables
-  let personOne
-  let personTwo
-  let generatedPair
-  let previouslyMatchedLength = -1
-  let previouslyMatched = []
-  const generatedPairs = []
+    const i = _.findIndex(pool, person => !person.isAssigned, start)
+    if (i === -1) {
+      // Everyone has been assigned. Check if this assignment is best
+      if (currentPairs.length > best.pairs.length)
+        best = { pairs: _.clone(currentPairs), unmatched: _.clone(unmatched) }
+      return
+    }
 
-  //checking to see either if there are people left or if we've gone through a loop and nothing has changed
-  while (previouslyMatchedLength !== previouslyMatched.length && shuffledPeople.length > 1) {
-    previouslyMatched = []
+    const person1 = pool[i]
+    person1.isAssigned = true
 
-    for (let i = 0; i < shuffledPeople.length; i++) {
-      //pop twice to generate pair
-      personOne = shuffledPeople.pop()
-      personTwo = shuffledPeople.pop()
-
-      //alphabetize names
-      if (personTwo < personOne) {
-        temp = personOne
-        personOne = personTwo
-        personTwo = temp
-      }
-      //check to see if this pair has been matched
-      generatedPair = `${personOne},${personTwo}`
-
-      if (pairsSet.has(generatedPair)) {
-        //if they've matched previously, capture in a new array
-        previouslyMatched.push([personOne, personTwo])
-      } else {
-        //if not, add to our pair set
-        generatedPairs.push({
-          personOne,
-          personTwo,
-          hashKey: generatedPair
-        })
+    for (let j = i + 1; j < pool.length; j++) {
+      const person2 = pool[j]
+      if (!person2.isAssigned && !hasPair(previousPairs, person1.name, person2.name)) {
+        person2.isAssigned = true
+        currentPairs.push({ personOne: person1.name, personTwo: person2.name})
+        genPairsRec(i + 1)
+        currentPairs.pop()
+        person2.isAssigned = false
       }
     }
 
-    previouslyMatchedLength = previouslyMatched.length
-    //add leftovers back so we can go through another loop
-    shuffledPeople = _.shuffle(previouslyMatched)
+    // Consider assignments where person1 is unmatched
+    unmatched.push(person1.name)
+    genPairsRec(i + 1)
+    unmatched.pop()
+
+    person1.isAssigned = false
   }
 
+  genPairsRec(0)
   return {
-    generatedPairs,
-    previouslyMatched
+    generatedPairs: best.pairs,
+    unmatched: best.unmatched
   }
 }
 
