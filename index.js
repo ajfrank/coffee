@@ -23,12 +23,15 @@ function main() {
                 return api.generatePairs(res.channel.members, previousPairs).generatedPairs
                 .forEach(({
                   personOne,
-                  personTwo
+                  personTwo,
+                  personThree
                 }) => {
                   //log to the db
-                  db.createNewPairing(personOne, personTwo)
+                  db.createNewPairing(personOne, personTwo, personThree)
                   //send message via Slack
-                  sendSlackMessage([personOne, personTwo], channel.name)
+                  const pairingArray = personThree ? [personOne, personTwo, personThree] :
+                    [personOne, personTwo]
+                  sendSlackMessage(pairingArray, channel.name)
                 })
               })
             })
