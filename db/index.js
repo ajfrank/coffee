@@ -3,8 +3,11 @@ const pg = require('pg')
 const postgresURL = process.env.DATABASE_URL || 'postgres://localhost/dropcoffee';
 const client = new pg.Client(postgresURL);
 
+console.log(postgresURL)
+
 console.log('connecting to DB')
 client.connect()
+    .catch(err=>console.error(err))
 console.log('connected to DB')
 
 function fetchAllPairings() {
