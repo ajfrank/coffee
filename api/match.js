@@ -11,7 +11,7 @@ function addPair(pairs, a, b) {
 
 function hasPair(pairs, a, b) {
   const [first, second] = ordered(a, b)
-  return pairs[a] && pairs[a][b]
+  return pairs[first] && pairs[first][second]
 }
 
 function transformPreviousPairs(previousPairs) {
@@ -33,7 +33,8 @@ function generatePairs(people, previousPairs) {
   let best = { pairs: [], unmatched: people }
 
   function genPairsRec(start) {
-    if (unmatched.length >= best.unmatched.length) {
+    const remaining = people.length - start
+    if (unmatched.length + remaining % 2 >= best.unmatched.length) {
       // Will not be able to beat current best, so skip this subtree
       return
     }
