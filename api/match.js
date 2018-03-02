@@ -27,13 +27,14 @@ function transformPreviousPairs(previousPairs) {
 }
 
 function generatePairs(people, previousPairs) {
-  const pool = _.map(people, name => ({ name, isAssigned: false }))
+  const shuffledPeople = _.shuffle(people)
+  const pool = _.map(shuffledPeople, name => ({ name, isAssigned: false }))
   const currentPairs = []
   const unmatched = []
-  let best = { pairs: [], unmatched: people }
+  let best = { pairs: [], unmatched: shuffledPeople }
 
   function genPairsRec(start) {
-    const remaining = people.length - start
+    const remaining = pool.length - start
     if (unmatched.length + remaining % 2 >= best.unmatched.length) {
       // Will not be able to beat current best, so skip this subtree
       return
