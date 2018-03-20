@@ -14,7 +14,7 @@ function main() {
       //once you have these channels, get previous pairings, so as to avoid duplicates
       db.fetchAllPairings()
         .then(pairings => {
-          const previousPairs = pairings.rows
+          const previousPairs = api.transformPreviousPairs(pairings.rows)
           coffeeChannels.forEach(channel => {
             //for each channel, find its members
             slackClient.channels.info(channel.id)
