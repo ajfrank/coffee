@@ -78,5 +78,6 @@ function generatePairs(people, previousPairs) {
 }
 
 module.exports = {
-  generatePairs
+  generatePairs,
+  transformPreviousPairs
 }
