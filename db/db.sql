@@ -1,3 +1,7 @@
+CREATE DATABASE dropcoffee IF NOT EXISTS;
+
+USE dropcoffee;
+
 CREATE TABLE pairings (
 	id SERIAL PRIMARY KEY,
 	person_one TEXT NOT NULL, 
